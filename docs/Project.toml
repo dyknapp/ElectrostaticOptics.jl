@@ -1,0 +1,6 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+ElectrostaticOptics = "98c58d34-f3eb-466e-8b8e-f3417d158972"
+
+[sources]
+ElectrostaticOptics = {path = ".."}
