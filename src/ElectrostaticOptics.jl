@@ -1,5 +1,8 @@
 module ElectrostaticOptics
 
-# Write your package code here.
+using StaticArrays
+
+include("core/interfaces.jl")
+
 
 end
