@@ -1,9 +1,16 @@
 using ElectrostaticOptics
 using Documenter
+using DocumenterCitations
+
+bib = CitationBibliography(
+    joinpath(@__DIR__, "src", "refs.bib");
+    style = :numeric,
+)
 
 DocMeta.setdocmeta!(ElectrostaticOptics, :DocTestSetup, :(using ElectrostaticOptics); recursive = true)
 
 makedocs(;
+    plugins = [bib],
     modules = [ElectrostaticOptics],
     authors = "Daniel Knapp <daniel.y.knapp@gmail.com> and contributors",
     sitename = "ElectrostaticOptics.jl",
@@ -14,6 +21,7 @@ makedocs(;
     ),
     pages = [
         "Home" => "index.md",
+        "Collocation" => "point_collocation.md",
     ],
 )
 
