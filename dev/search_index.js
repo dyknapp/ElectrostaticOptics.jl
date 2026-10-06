@@ -1,3 +1,3 @@
 var documenterSearchIndex = {"docs":
-[{"category":"section","location":"#ElectrostaticOptics","page":"Home","text":"Documentation for ElectrostaticOptics.\n\n","title":"ElectrostaticOptics"}]
+[{"category":"section","location":"references/#References","page":"References","text":"A. Renau, F. H. Read and J. N. Brunt. The charge-density method of solving electrostatic problems with and without the inclusion of space-charge. Journal of Physics E: Scientific Instruments 15, 347 (1982).\n\n\n\n","title":"References"},{"category":"section","location":"point_collocation/","page":"Collocation","text":"Following [1].","title":"Collocation"},{"category":"section","location":"#ElectrostaticOptics","page":"Home","text":"Documentation for ElectrostaticOptics.\n\n","title":"ElectrostaticOptics"}]
 }
