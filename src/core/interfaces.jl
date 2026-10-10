@@ -1,45 +1,67 @@
 # 2026 10 04, Daniel Knapp, Amsterdam : initial version (mostly writing out conventions)
+# 2026 10 10, Daniel Knapp, Amsterdam : Build AbstractMapping (delete initial version)
+
+using ForwardDiff
+using StaticArrays
+
+# =====================================================================================
+# AbstractMapping
+#
+# Hold onto the basic differential geometry stuff in this abstract supertype
+#
+# A mapping ℝᴰ → ℝᴺ
+abstract type AbstractMapping{N, D} end
+
+# Evaluation of the actual value of the mapping
+function point(m::AbstractMapping{D}, ξ::SVector{D}) where {D} end
+function (m::AbstractMapping{N, D})(ξ::SVector{D})::SMatrix{N} where {N, D}
+    return point(m, ξ)
+end
+
+# Jacobian
+# This is the dumb default implementation that uses automatic differentiation.
+# You should implement the actual analytical jacobian if you care about performacne!
+function jacobian(m::AbstractMapping{N, D}, ξ)::SMatrix{N, D} where {N, D}
+    J = ForwardDiff.jacobian(ξ → m(ξ), ξ)
+    return SMatrix{N, D}
+end
+
+# Gram matrix
+gram(J::AbstractMatrix)::AbstractMatrix = J' * J
+function gram(m::AbstractMapping{N, D}, ξ)::AbstractMatrix where {N, D}
+    return gram(jacobian(m, ξ))
+end
+
+# measure for integration
+measure(J::AbstractMatrix) = T(sqrt(det(gram(J))))
+function measure(m::AbstractMapping{N, D}, ξ)::AbstractMatrix where {N, D}
+    return measure(gram(jacobian(m, ξ)))
+end
 
 
-# AbstractSpace
+# Composition
 #
-# A "space" (TODO: think of / find a better name) is the choice of 2 coordinates to use as our 2D problem setup.
-# For instance, planar problems will use (x, y) and axisymmetric problems will use (r, z).
-# The idea behind making this an abstract supertype is that I want to be able to use various types of patches (but not kernels!) in different spaces.
-# The problem I had before is that the Jacobian was hard-coded into the patch, which was irritating when I wanted to switch from axisymmetric to planar.
-# What I'm currently wondering is what I actually want to build into AbstractSpace.  I can imagine some nice and simple stuff like definitions for distances or whatever.
-# But is it going to just end up being a label for "which Jacobian should I use?".  Maybe.
-# Not an important design decision immediately because I'm initially going to focus on point collocation BEM.  But something to keep in mind!!
+# Compose a mapping ℝᴰ → ℝᴹ with a mapping ℝᴹ → ℝᴺ
+# Gives overall a mapping ℝᴰ → ℝᴺ
 #
-abstract type AbstractSpace end
+# Based on Julia ComposedFunction implementation: https://github.com/JuliaLang/julia/blob/d1c37793dd2ab0de6bca636e1d7f2ceb43150a9c/base/operators.jl#L1069-L1099
+struct ComposedMapping{N, M, D, F <: AbstractMapping{N, M}, G <: AbstractMapping{M, D}} <: AbstractMapping{N, D}
+    outer::F
+    inner::G
+end
 
-# AbstractPatch
+function compose(f::AbstractMapping{N, M}, g::AbstractMapping{M, D}) where {N, M, D}
+    return ComposedMapping{N, M, D, typeof(F), typeof(G)}(f, g)
+end
+
+Base.:∘(f::AbstractMapping, g::AbstractMapping) = compose(f, g)
+
+
+# =====================================================================================
+# AbstractElemet
 #
-# A patch is a 1D curve in 2D space, defined by a geometry map from ξ∈[0,1] to 2D coordinates (e.g. (x,y) for planar or (r,z) for axisymmetric).
-# As a basic design convention, we follow a hierarchical structure: each surface charge basis function must have support on a single patch.
-#   EXCEPTION: adjacent patches can share a basis function that has support over both, as a way to enforce continuity.
-#       The basic rule is one DOF per control point.  Control points belong to patches but can be shared.
-# A lot of the basis function computation logic is attached to the patch because of this heirarchy:
-#   A lot of information (polynomial coefficients, geometrical information like the Jacobian) is inherently tied to the geometric patch
-#
-#
-# Abstract interface for patches:
-#
-# - patch(ξ) → SVector{2}  (evaluate coordinate corresponding to ξ)
-#       This one is self-explanatory, we need to know the geometry...
-#
-# - jacobian(patch, ξ) → Real (evaluate the Jacobian at ξ)
-#       Also relatively self-explanatory, we need the Jacobian for integration.
-#
-# - control_points(patch) → Vector{SVector{2}}  (return the control points or nodes of the patch)
-#       This is needed for plotting and for adjacency detection.
-#           By default, the geometry is loaded into this package without any information on adjacency or ordering:
-#           During integration, we need to know adjacency to to predict when an integrand will be singular and need special treatment.
-#
-abstract type AbstractPatch{T <: Real, N} end
-(patch::AbstractPatch)(ξ::Real) = error("Not implemented for $(typeof(patch))")
-jacobian(patch::AbstractPatch, space::AbstractSpace, ξ::Real) = error("Not implemented for $(typeof(patch))")
-control_points(patch::AbstractPatch) = error("Not implemented for $(typeof(patch))")
+# Mapping of unit cell to actual geometry
+abstract type AbstractElement{N, D, T} <: AbstractMapping{N, D} end
 
 # AbstractKernel
 #
