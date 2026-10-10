@@ -1,3 +1,5 @@
+# 2026 10 10, Daniel Knapp, Egmond aan Zee: Start writing out basic implementation ideas (collocation derivation and mesh)
+
 using ElectrostaticOptics
 using Documenter
 using DocumenterCitations
@@ -21,7 +23,9 @@ makedocs(;
     ),
     pages = [
         "Home" => "index.md",
+        "Mesh" => "abstract_mesh.md",
         "Collocation" => "point_collocation.md",
+        "Step 1: Collocation" => "constant_charge_collocation.md"
     ],
 )
 
