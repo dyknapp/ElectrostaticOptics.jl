@@ -5,3 +5,4 @@
 [![Build Status](https://github.com/dyknapp/ElectrostaticOptics.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/dyknapp/ElectrostaticOptics.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/dyknapp/ElectrostaticOptics.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/dyknapp/ElectrostaticOptics.jl)
 [![Aqua](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
+[![Fuzzy Tests](https://raw.githubusercontent.com/Seelengrab/Supposition.jl/main/badge.svg)](https://github.com/Seelengrab/Supposition.jl)

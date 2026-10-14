@@ -36,14 +36,15 @@ struct CircArc{T <: Real} <: AbstractCurve2D
     θ₁::Real
     θ₂::Real
 
-    function CircArc(o::SVector{2}, r::Real, θ₁::Real, θ₂::Real)
+    function CircArc(o::SVector{2}, r::T, θ₁::T, θ₂::T) where {T}
         @assert abs(θ₂ - θ₁) ≤ 2π
+        return new{T}(o, r, θ₁, θ₂)
     end
 end
 function (C::CircArc)(ξ::T)::SVector{2} where {T}
     @assert 0 ≤ ξ ≤ 1
     θ = (1 - ξ) * C.θ₁ + ξ * C.θ₂
-    return SVector(C.o[1] + C.r * cos(θ), T.o[2] + C.r * sin(θ))
+    return SVector(C.o[1] + C.r * cos(θ), C.o[2] + C.r * sin(θ))
 end
 
 struct FuncCurve{F, T <: Real} <: AbstractCurve2D
@@ -54,7 +55,7 @@ struct FuncCurve{F, T <: Real} <: AbstractCurve2D
 end
 function (C::FuncCurve)(ξ::T)::SVector{2} where {T}
     @assert 0 ≤ val(ξ) ≤ 1
-    t = C.t₁ + ξ*(C.t₂ - C.t₁)
+    t = C.t₁ + ξ * (C.t₂ - C.t₁)
     return C.f(t)
 end
 

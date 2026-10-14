@@ -8,10 +8,11 @@ using JET
         Aqua.test_all(ElectrostaticOptics, deps_compat = (check_extras = false,))
     end
     @testset "Code linting (JET.jl)" begin
-        JET.test_package(ElectrostaticOptics,
+        JET.test_package(
+            ElectrostaticOptics,
             target_modules = (ElectrostaticOptics,),
         )
     end
-    
+
     include("geometry/abstract_curve.jl")
 end
