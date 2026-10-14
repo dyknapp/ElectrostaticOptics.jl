@@ -1,8 +1,10 @@
 # 2026 10 14, Daniel Knapp, Amsterdam : initial version
 
-# TODO: Some input validation, e.g., an arc should be at most 2π
-
 abstract type AbstractCurve2D end
+
+
+val(ξ::Real) = ξ
+val(ξ::ForwardDiff.Dual) = ForwardDiff.value(ξ)
 
 
 function tangent(c::AbstractCurve2D, t::Real)::SVector{2}
@@ -23,8 +25,8 @@ struct LineSeg{T <: Real} <: AbstractCurve2D
     p₁::SVector{2, T}
     p₂::SVector{2, T}
 end
-function (L::LineSeg)(ξ::T)::SVector{2, T} where {T}
-    @assert 0 ≤ ξ ≤ 1
+function (L::LineSeg)(ξ::Real)::SVector{2}
+    @assert 0 ≤ val(ξ) ≤ 1
     return (1 - ξ) * L.p₁ + ξ * L.p₂
 end
 
@@ -33,11 +35,15 @@ struct CircArc{T <: Real} <: AbstractCurve2D
     r::Real
     θ₁::Real
     θ₂::Real
+
+    function CircArc(o::SVector{2}, r::Real, θ₁::Real, θ₂::Real)
+        @assert abs(θ₂ - θ₁) ≤ 2π
+    end
 end
-function (C::CircArc)(ξ::T)::SVector{2, T} where {T}
+function (C::CircArc)(ξ::T)::SVector{2} where {T}
     @assert 0 ≤ ξ ≤ 1
     θ = (1 - ξ) * C.θ₁ + ξ * C.θ₂
-    return SVector(T(C.o[1] + C.r * cos(θ)), T(C.o[2] + C.r * sin(θ)))
+    return SVector(C.o[1] + C.r * cos(θ), T.o[2] + C.r * sin(θ))
 end
 
 struct FuncCurve{F, T <: Real} <: AbstractCurve2D
@@ -46,9 +52,9 @@ struct FuncCurve{F, T <: Real} <: AbstractCurve2D
     t₁::T
     t₂::T
 end
-function (C::FuncCurve)(ξ::T)::SVector{2, T} where {T}
-    @assert 0 ≤ ξ ≤ 1
-    t = C.t₁ + ξ * (C.t₂ - C.t₁)
+function (C::FuncCurve)(ξ::T)::SVector{2} where {T}
+    @assert 0 ≤ val(ξ) ≤ 1
+    t = C.t₁ + ξ*(C.t₂ - C.t₁)
     return C.f(t)
 end
 
@@ -61,7 +67,5 @@ end
     t = LinRange(0.0, 1.0, 128)
     pts = C.(t)
 
-    return
-    [pt[1] for pt in pts],
-        [pt[2] for pt in pts]
+    return [pt[1] for pt in pts], [pt[2] for pt in pts]
 end

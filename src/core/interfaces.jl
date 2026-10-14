@@ -10,8 +10,10 @@
 abstract type AbstractMapping{N, D} end
 
 # Evaluation of the actual value of the mapping
-function point(m::AbstractMapping{D}, ξ::SVector{D}) where {D} end
-function (m::AbstractMapping{N, D})(ξ::SVector{D})::SMatrix{N} where {N, D}
+function point(m::AbstractMapping{N, D}, ξ::SVector{D})::SVector{N} where {N, D}
+    error("Not implemented")
+end
+function (m::AbstractMapping{N, D})(ξ::SVector{D})::SVector{N} where {N, D}
     return point(m, ξ)
 end
 
@@ -19,8 +21,8 @@ end
 # This is the dumb default implementation that uses automatic differentiation.
 # You should implement the actual analytical jacobian if you care about performacne!
 function jacobian(m::AbstractMapping{N, D}, ξ)::SMatrix{N, D} where {N, D}
-    J = ForwardDiff.jacobian(ξ → m(ξ), ξ)
-    return SMatrix{N, D}
+    J = ForwardDiff.jacobian(ξ -> m(ξ), ξ)
+    return SMatrix{N, D}(J)
 end
 
 # Gram matrix
@@ -30,7 +32,7 @@ function gram(m::AbstractMapping{N, D}, ξ)::AbstractMatrix where {N, D}
 end
 
 # measure for integration
-measure(J::AbstractMatrix) = T(sqrt(det(gram(J))))
+measure(J::AbstractMatrix) = sqrt(det(gram(J)))
 function measure(m::AbstractMapping{N, D}, ξ)::AbstractMatrix where {N, D}
     return measure(gram(jacobian(m, ξ)))
 end
@@ -48,7 +50,7 @@ struct ComposedMapping{N, M, D, F <: AbstractMapping{N, M}, G <: AbstractMapping
 end
 
 function compose(f::AbstractMapping{N, M}, g::AbstractMapping{M, D}) where {N, M, D}
-    return ComposedMapping{N, M, D, typeof(F), typeof(G)}(f, g)
+    return ComposedMapping{N, M, D, typeof(f), typeof(g)}(f, g)
 end
 
 Base.:∘(f::AbstractMapping, g::AbstractMapping) = compose(f, g)
