@@ -1,9 +1,6 @@
 # 2026 10 04, Daniel Knapp, Amsterdam : initial version (mostly writing out conventions)
 # 2026 10 10, Daniel Knapp, Amsterdam : Build AbstractMapping (delete initial version)
 
-using ForwardDiff
-using StaticArrays
-
 # =====================================================================================
 # AbstractMapping
 #
@@ -75,6 +72,6 @@ abstract type AbstractElement{N, D, T} <: AbstractMapping{N, D} end
 #       Just evaluate the formula between two points.
 #       WARNING: this will almost certainly be infinite if pt₁ = pt₂.
 #           You probably want to avoid that happening in your code (singular quadrature), or handle it explicitly (limiting value for point collocation)
-abstract type AbstractKernel{S <: AbstractSpace, T <: Real} end
-(kernel::AbstractKernel{S, T})(pt₁::SVector{2, T}, pt₂::SVector{2, T}) where {S, T} = error("Not implemented for $(typeof(kernel))")
+abstract type AbstractKernel{T <: Real} end
+(kernel::AbstractKernel{T})(pt₁::SVector{2, T}, pt₂::SVector{2, T}) where {T} = error("Not implemented for $(typeof(kernel))")
 # TODO: is there a nice general way to ask for diagonal/adjacent element/far separated element blocks?
