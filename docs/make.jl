@@ -15,6 +15,7 @@ Documenter.post_status(deployconfig; type = "pending", repo = "github.com/dyknap
 using Literate
 using Plots # to not capture precompilation output
 using StaticArrays
+using Graphs
 
 
 Literate.markdown(joinpath(@__DIR__, "literate", "example.jl"), joinpath(@__DIR__, "src", "generated"))
