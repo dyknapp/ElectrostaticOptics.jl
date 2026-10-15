@@ -78,10 +78,43 @@ end
         return residual ≤ tolerance
     end
 
+    @check function tangent_length(p₁ = vec_gen, p₂ = vec_gen, t = t_gen)
+        if norm(p₂ - p₁) ≤ 1.0e-6
+            reject!()
+        end
+        line = LineSeg(p₁, p₂)
+        tang = tangent(line, t)
+        return abs(1 - norm(tang)) < ϵ_test
+    end
+
+    @check function tangent_normal_angle(p₁ = vec_gen, p₂ = vec_gen, t = t_gen)
+        if norm(p₂ - p₁) ≤ 1.0e-6
+            reject!()
+        end
+
+        line = LineSeg(p₁, p₂)
+
+        result = dot(tangent(line, t), normal(line, t))
+        event!("dot product", result)
+
+        return result ≤ ϵ_test
+    end
+
     f(t) = SVector(cosh(t), sinh(t))
     hyperbola = FuncCurve(f, -1.0, 1.0)
     @test tangent(hyperbola, 0.5) ≈ [0.0, 1.0]
     JET.@test_call tangent(line, 0.5)
+end
+
+@testset "normal" begin
+    @check function normal_length(p₁ = vec_gen, p₂ = vec_gen, t = t_gen)
+        if norm(p₂ - p₁) ≤ 1.0e-6
+            reject!()
+        end
+        line = LineSeg(p₁, p₂)
+        nor = normal(line, t)
+        return abs(1 - norm(nor)) < ϵ_test
+    end
 end
 
 @testset "circle" begin
@@ -105,6 +138,45 @@ end
         tolerance = max(r * ϵ_test, norm(o * ϵ_test), ϵ_test)
         event!("actual radius", circ_rad)
         event!("residual", residual)
+        event!("tolerance", tolerance)
+
+        return residual ≤ tolerance
+    end
+end
+
+@testset "measure" begin
+    @check function line_measure(p₁ = vec_gen, p₂ = vec_gen, t = t_gen)
+        if norm(p₂ - p₁) ≤ 1.0e-6
+            reject!()
+        end
+        line = LineSeg(p₁, p₂)
+        expected = norm(p₂ - p₁)
+        meas = measure(line, t)
+        residual = abs(expected - meas)
+        tolerance = max(expected * ϵ_test, ϵ_test)
+
+        event!("measure", meas)
+        event!("residual", residual)
+        event!("tolerance", tolerance)
+
+        return residual ≤ tolerance
+    end
+
+    @check function circle_measure(o = vec_gen, r = len_gen, θ₁ = angle_gen, θ₂ = angle_gen, t = t_gen)
+        arc = CircArc(o, r, θ₁, θ₂)
+
+        if abs(θ₂ - θ₁) < ϵ_test
+            reject!()
+        end
+
+        expected = r * abs(θ₂ - θ₁)
+        meas = measure(arc, t)
+
+        residual = abs(expected - meas)
+        tolerance = max(expected * ϵ_test, ϵ_test)
+
+        event!("measure", meas)
+        event!("expected", expected)
         event!("tolerance", tolerance)
 
         return residual ≤ tolerance

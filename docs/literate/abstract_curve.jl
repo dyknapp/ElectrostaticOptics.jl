@@ -24,6 +24,9 @@ arc = CircArc(o, r, θ₁, θ₂)
 
 plot(arc, aspect_ratio = :equal)
 
+# Let's check the measure, should be $2\pi r$.
+measure(arc, 0.0), r * abs(θ₂ - θ₁)
+
 
 # ## FuncCurve
 # You can define any function you like, e.g. a hyperbola.
