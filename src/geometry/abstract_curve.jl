@@ -29,6 +29,16 @@ function (L::LineSeg)(ξ::Real)::SVector{2}
     @assert 0 ≤ val(ξ) ≤ 1
     return (1 - ξ) * L.p₁ + ξ * L.p₂
 end
+function affine_transform(L::LineSeg, mat::SMatrix{2, 2, T}) where {T}
+    new_p₁ = mat * L.p₁
+    new_p₂ = mat * L.p₂
+    return LineSeg(new_p₁, new_p₂)
+end
+function translation(L::LineSeg, trans::SVector{2})
+    new_p₁ = L.p₁ + trans
+    new_p₂ = L.p₂ + trans
+    return LineSeg(new_p₁, new_p₂)
+end
 
 struct CircArc{T <: Real} <: AbstractCurve2D
     o::SVector{2, T}
@@ -46,6 +56,13 @@ function (C::CircArc)(ξ::T)::SVector{2} where {T}
     θ = (1 - ξ) * C.θ₁ + ξ * C.θ₂
     return SVector(C.o[1] + C.r * cos(θ), C.o[2] + C.r * sin(θ))
 end
+# This is actually complicated, we need to deal with ellipses or something
+# function affine_transform(C::CircArc, mat::SMatrix{2, 2, T}) where {T}
+#     new_o = mat * C.o
+#     new_r = mat * C.r
+
+#     return CircArc(, )
+# end
 
 struct FuncCurve{F, T <: Real} <: AbstractCurve2D
     f::F # Must be a function t::Real → SVector{2,T} where t∈[t₁,t₂]

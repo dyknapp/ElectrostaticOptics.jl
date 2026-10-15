@@ -100,6 +100,6 @@ arcB = CircArc(SVector(-sqrt(3) / 2, -0.5), 1.0, π / 6, 7π / 6)
 plot(arcA, aspect_ratio = :equal)
 plot!(arcB)
 
-R = 0.8
+R = 0.5
 trims, fillet_arc = solve_fillet_arc(R, (arcA, arcB))
 plot!(fillet_arc, linecolor = :blue)

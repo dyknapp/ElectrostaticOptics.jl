@@ -19,6 +19,7 @@ using StaticArrays
 
 Literate.markdown(joinpath(@__DIR__, "literate", "example.jl"), joinpath(@__DIR__, "src", "generated"))
 Literate.markdown(joinpath(@__DIR__, "literate", "abstract_curve.jl"), joinpath(@__DIR__, "src", "generated"))
+Literate.markdown(joinpath(@__DIR__, "literate", "mesh.jl"), joinpath(@__DIR__, "src", "generated"))
 
 bib = CitationBibliography(
     joinpath(@__DIR__, "src", "refs.bib");
@@ -43,6 +44,7 @@ makedocs(;
         "Collocation" => "point_collocation.md",
         "Step 1: Collocation" => "constant_charge_collocation.md",
         "AbstractCurve2D" => "generated/abstract_curve.md",
+        "Mesh" => "generated/mesh.md",
         "Example" => "generated/example.md",
     ],
 )
