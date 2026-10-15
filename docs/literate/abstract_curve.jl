@@ -35,3 +35,32 @@ f(t) = SVector(cosh(t), sinh(t))
 hyperbola = FuncCurve(f, -1.0, 1.0)
 
 plot(hyperbola, aspect_ratio = :equal)
+
+
+# ## Test Filleting (`solve_fillet`)
+# For straight lines, the fillet solve is trivial and should converge in one iteration (as long as the fillet radius is shorter than both lines).
+
+p_corner = SVector(0.0, 0.0)
+
+lineA = LineSeg(SVector(1.0, -1.0), p_corner)
+lineB = LineSeg(p_corner, SVector(1.0, 1.0))
+
+R = 0.25
+trims, center = solve_fillet(R, (lineA, lineB))
+
+plot(lineA, aspect_ratio = :equal)
+plot!(lineB)
+
+trim_pt_A = lineA(trims[1])
+trim_pt_B = lineB(trims[2])
+
+vec_A = trim_pt_A - center
+vec_B = trim_pt_B - center
+
+θ₁ = atan(vec_A[2], vec_A[1])
+θ₂ = atan(vec_B[2], vec_B[1])
+
+# TODO: arcs are only CCW at the moment, fix that.
+fillet_arc = CircArc(center, R, θ₁, θ₂)
+
+plot!(fillet_arc, linecolor = :blue)
