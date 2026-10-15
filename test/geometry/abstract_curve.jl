@@ -16,6 +16,40 @@ t_gen = Supposition.Data.Floats{Float64}(minimum = 0.0, maximum = 1.0, nans = fa
 len_gen = Supposition.Data.Floats{Float64}(minimum = min_len, maximum = max_len, nans = false, infs = false)
 angle_gen = Supposition.Data.Floats{Float64}(minimum = 0.0, maximum = 2.0 * π, nans = false, infs = false)
 
+@testset "AbstractMapping curve interface" begin
+    ξ = 0.25
+    coordinates = SVector(ξ)
+    line = LineSeg(SVector(0.0, 0.0), SVector(3.0, 4.0))
+    arc = CircArc(SVector(0.0, 0.0), 2.0, 0.0, Float64(π))
+    parabola = FuncCurve(t -> SVector(t, t^2), -1.0, 2.0)
+
+    for (curve, velocity) in (
+            (line, SVector(3.0, 4.0)),
+            (arc, 2π * SVector(-sin(π * ξ), cos(π * ξ))),
+            (parabola, SVector(3.0, 6 * (-1 + 3ξ))),
+        )
+        @test curve isa ElectrostaticOptics.AbstractMapping{2, 1}
+        @test curve(coordinates) ≈ curve(ξ)
+        @test ElectrostaticOptics.point(curve, coordinates) ≈ curve(ξ)
+        @test_throws AssertionError curve(SVector(-0.1))
+
+        J = ElectrostaticOptics.jacobian(curve, coordinates)
+        @test J isa SMatrix{2, 1}
+        @test J[:, 1] ≈ velocity
+        @test ElectrostaticOptics.jacobian(curve, ξ) ≈ J
+        @test ElectrostaticOptics.gram(curve, coordinates) ≈ SMatrix{1, 1}(dot(velocity, velocity))
+        @test ElectrostaticOptics.gram(curve, ξ) ≈ ElectrostaticOptics.gram(curve, coordinates)
+        @test measure(curve, coordinates) ≈ norm(velocity)
+        @test measure(curve, ξ) ≈ norm(velocity)
+    end
+
+    # Fillet solves differentiate through normals, requiring nested AD.
+    normal_jacobian = ForwardDiff.jacobian(η -> normal(arc, only(η)), coordinates)
+    @test normal_jacobian[:, 1] ≈ π * SVector(-sin(π * ξ), cos(π * ξ))
+    @test tangent(arc, 1.0) ≈ SVector(0.0, -1.0)
+    @test measure(arc, SVector(1.0)) ≈ 2π
+end
+
 @testset "LineSeg geometry" begin
     p₁ = SVector(0.1, 1.1)
     p₂ = SVector(50.0, 5.0 * π)

@@ -1,6 +1,10 @@
 # 2026 10 14, Daniel Knapp, Amsterdam : initial version
+# 2026 10 15, Daniel Knapp, Amsterdam : Attach to AbstractMapping, add affine_transform and translation
 
-abstract type AbstractCurve2D end
+abstract type AbstractCurve2D <: AbstractMapping{2, 1} end
+
+# Adapt reference coordinates to the existing scalar curve interface.
+point(c::AbstractCurve2D, ξ::SVector{1}) = c(only(ξ))
 
 
 val(ξ::Real) = ξ
@@ -8,18 +12,13 @@ val(ξ::ForwardDiff.Dual) = ForwardDiff.value(ξ)
 
 
 function tangent(c::AbstractCurve2D, t::Real)::SVector{2}
-    return SVector(normalize(ForwardDiff.derivative(c, t)))
+    return normalize(jacobian(c, t)[:, 1])
 end
 
 function normal(c::AbstractCurve2D, t::Real)::SVector{2}
     τ = tangent(c, t)
     return SVector(τ[2], -τ[1])
 end
-
-function measure(c::AbstractCurve2D, t::Real)::Real
-    return norm(ForwardDiff.derivative(c, t))
-end
-
 
 struct LineSeg{T <: Real} <: AbstractCurve2D
     p₁::SVector{2, T}
@@ -51,8 +50,8 @@ struct CircArc{T <: Real} <: AbstractCurve2D
         return new{T}(o, r, θ₁, θ₂)
     end
 end
-function (C::CircArc)(ξ::T)::SVector{2} where {T}
-    @assert 0 ≤ ξ ≤ 1
+function (C::CircArc)(ξ::Real)::SVector{2}
+    @assert 0 ≤ val(ξ) ≤ 1
     θ = (1 - ξ) * C.θ₁ + ξ * C.θ₂
     return SVector(C.o[1] + C.r * cos(θ), C.o[2] + C.r * sin(θ))
 end
@@ -70,7 +69,7 @@ struct FuncCurve{F, T <: Real} <: AbstractCurve2D
     t₁::T
     t₂::T
 end
-function (C::FuncCurve)(ξ::T)::SVector{2} where {T}
+function (C::FuncCurve)(ξ::Real)::SVector{2}
     @assert 0 ≤ val(ξ) ≤ 1
     t = C.t₁ + ξ * (C.t₂ - C.t₁)
     return C.f(t)

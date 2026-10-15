@@ -20,9 +20,12 @@ end
 # Jacobian
 # This is the dumb default implementation that uses automatic differentiation.
 # You should implement the actual analytical jacobian if you care about performacne!
-function jacobian(m::AbstractMapping{N, D}, ξ)::SMatrix{N, D} where {N, D}
+function jacobian(m::AbstractMapping{N, D}, ξ::SVector{D})::SMatrix{N, D} where {N, D}
     J = ForwardDiff.jacobian(ξ -> m(ξ), ξ)
     return SMatrix{N, D}(J)
+end
+function jacobian(m::AbstractMapping{N, 1}, ξ::SVector{D}) where {N}
+    return jacobian(m, SVector(ξ))
 end
 
 # Gram matrix
@@ -33,8 +36,8 @@ end
 
 # measure for integration
 measure(J::AbstractMatrix) = sqrt(det(gram(J)))
-function measure(m::AbstractMapping{N, D}, ξ)::AbstractMatrix where {N, D}
-    return measure(gram(jacobian(m, ξ)))
+function measure(m::AbstractMapping{N, D}, ξ) where {N, D}
+    return measure(jacobian(m, ξ))
 end
 
 
