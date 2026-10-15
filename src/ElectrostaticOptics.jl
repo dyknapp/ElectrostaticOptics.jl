@@ -12,6 +12,6 @@ include("geometry/fillet.jl")
 # geometry
 export AbstractCurve2D, LineSeg, CircArc, FuncCurve
 export tangent, normal, measure
-export solve_fillet
+export solve_fillet, solve_fillet_arc
 
 end
