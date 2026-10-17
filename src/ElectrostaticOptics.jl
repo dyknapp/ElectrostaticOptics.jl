@@ -14,8 +14,9 @@ include("geometry/mesh.jl")
 include("basis/lagrange.jl")
 
 # geometry
-export AbstractCurve2D, LineSeg, CircArc, FuncCurve
+export AbstractCurve2D, LineSeg, CircArc, EllipticArc, FuncCurve
 export tangent, normal, measure
+export affine_transform, translation
 export solve_fillet, solve_fillet_arc
 
 # mesh

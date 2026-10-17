@@ -24,7 +24,7 @@ function jacobian(m::AbstractMapping{N, D}, ξ::SVector{D})::SMatrix{N, D} where
     J = ForwardDiff.jacobian(ξ -> m(ξ), ξ)
     return SMatrix{N, D}(J)
 end
-function jacobian(m::AbstractMapping{N, 1}, ξ::SVector{D}) where {N}
+function jacobian(m::AbstractMapping{N, 1}, ξ::Real) where {N}
     return jacobian(m, SVector(ξ))
 end
 

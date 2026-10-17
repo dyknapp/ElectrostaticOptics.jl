@@ -1,5 +1,6 @@
 # 2026 10 14, Daniel Knapp, Amsterdam : initial version
 # 2026 10 15, Daniel Knapp, Amsterdam : Attach to AbstractMapping, add affine_transform and translation
+# 2026 10 18, Daniel Knapp, Amsterdam : Add EllipticArc
 
 abstract type AbstractCurve2D <: AbstractMapping{2, 1} end
 
@@ -8,7 +9,7 @@ point(c::AbstractCurve2D, ξ::SVector{1}) = c(only(ξ))
 
 
 val(ξ::Real) = ξ
-val(ξ::ForwardDiff.Dual) = ForwardDiff.value(ξ)
+val(ξ::ForwardDiff.Dual) = val(ForwardDiff.value(ξ))
 
 
 function tangent(c::AbstractCurve2D, t::Real)::SVector{2}
@@ -55,13 +56,55 @@ function (C::CircArc)(ξ::Real)::SVector{2}
     θ = (1 - ξ) * C.θ₁ + ξ * C.θ₂
     return SVector(C.o[1] + C.r * cos(θ), C.o[2] + C.r * sin(θ))
 end
-# This is actually complicated, we need to deal with ellipses or something
-# function affine_transform(C::CircArc, mat::SMatrix{2, 2, T}) where {T}
-#     new_o = mat * C.o
-#     new_r = mat * C.r
 
-#     return CircArc(, )
-# end
+function affine_transform(C::CircArc, mat::SMatrix{2, 2})
+    return EllipticArc(mat * C.o, C.r * mat, C.θ₁, C.θ₂)
+end
+
+function translation(C::CircArc, trans::SVector{2})
+    o = C.o + trans
+    return CircArc(o, C.r, C.θ₁, C.θ₂)
+end
+
+struct EllipticArc{T <: Real} <: AbstractCurve2D
+    o::SVector{2, T}
+    B::SMatrix{2, 2, T, 4}
+    θ₁::T
+    θ₂::T
+
+    function EllipticArc(o::SVector{2, <:Real}, B::SMatrix{2, 2, <:Real}, θ₁::Real, θ₂::Real)
+        Δθ = θ₂ - θ₁
+        @assert abs(Δθ) ≤ 2 * oftype(float(Δθ), π)
+        T = promote_type(eltype(o), eltype(B), typeof(θ₁), typeof(θ₂))
+        return new{T}(o, B, θ₁, θ₂)
+    end
+end
+
+function (C::EllipticArc)(ξ::Real)::SVector{2}
+    @assert 0 ≤ val(ξ) ≤ 1
+    θ = (1 - ξ) * C.θ₁ + ξ * C.θ₂
+    return C.o + C.B * SVector(cos(θ), sin(θ))
+end
+
+function jacobian(C::EllipticArc, ξ::SVector{1})
+    t = only(ξ)
+    @assert 0 ≤ val(t) ≤ 1
+    θ = (1 - t) * C.θ₁ + t * C.θ₂
+    velocity = (C.θ₂ - C.θ₁) * (C.B * SVector(-sin(θ), cos(θ)))
+    return SMatrix{2, 1}(velocity)
+end
+
+function affine_transform(C::EllipticArc, mat::SMatrix{2, 2})
+    return EllipticArc(mat * C.o, mat * C.B, C.θ₁, C.θ₂)
+end
+
+function translation(C::EllipticArc, trans::SVector{2})
+    return EllipticArc(C.o + trans, C.B, C.θ₁, C.θ₂)
+end
+
+function affine_transform(C::AbstractCurve2D, mat::SMatrix{2, 2}, trans::SVector{2})
+    return translation(affine_transform(C, mat), trans)
+end
 
 struct FuncCurve{F, T <: Real} <: AbstractCurve2D
     f::F # Must be a function t::Real → SVector{2,T} where t∈[t₁,t₂]

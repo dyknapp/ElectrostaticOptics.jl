@@ -28,6 +28,18 @@ plot(arc, aspect_ratio = :equal)
 # measure(arc, 0.0), r * abs(θ₂ - θ₁)
 
 
+# ## EllipticArc
+# Stretch and shear a circular arc, then translate it. The result stores the transformed center and a matrix mapping the unit circle to the ellipse.
+
+circle_arc = CircArc(SVector(0.0, 0.0), 1.0, 0.0, 1.5π)
+A = @SMatrix [2.0 0.5; 0.0 1.0]
+offset = SVector(3.0, 1.0)
+ellipse_arc = affine_transform(circle_arc, A, offset)
+
+plot(circle_arc, label = "Circle", aspect_ratio = :equal)
+plot!(ellipse_arc, label = "Affine image")
+
+
 # ## FuncCurve
 # You can define any function you like, e.g. a hyperbola.
 

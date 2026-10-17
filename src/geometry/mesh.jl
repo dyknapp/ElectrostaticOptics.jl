@@ -29,7 +29,7 @@ function concat_meshes(mesh1::Mesh, mesh2::Mesh)
 end
 
 function circle(o::SVector{2}, r::T)::Mesh where {T}
-    # For simplicity, just split it into two arcs
+    # Split the counterclockwise boundary into two arcs.
     arcs = AbstractCurve2D[CircArc(o, r, 0.0, 1.0 * π), CircArc(o, r, 1.0 * π, 2.0 * π)]
     topo = SimpleDiGraph([false true; true false])
     return Mesh(arcs, topo)
@@ -37,12 +37,12 @@ end
 
 
 function rectangle(center::SVector{2}, width::Real, height::Real, θ::Real)
-    # The approach is to draw a rectange, rotate, and then move it.
+    # Draw a counterclockwise rectangle, rotate, and then move it.
     rectsides = [
-        LineSeg(SVector(-width / 2, height / 2), SVector(width / 2, height / 2)),
-        LineSeg(SVector(width / 2, height / 2), SVector(width / 2, -height / 2)),
-        LineSeg(SVector(width / 2, -height / 2), SVector(-width / 2, -height / 2)),
-        LineSeg(SVector(-width / 2, -height / 2), SVector(-width / 2, height / 2)),
+        LineSeg(SVector(-width / 2, height / 2), SVector(-width / 2, -height / 2)),
+        LineSeg(SVector(-width / 2, -height / 2), SVector(width / 2, -height / 2)),
+        LineSeg(SVector(width / 2, -height / 2), SVector(width / 2, height / 2)),
+        LineSeg(SVector(width / 2, height / 2), SVector(-width / 2, height / 2)),
     ]
     rot_mat = SMatrix{2, 2}([cos(θ) sin(θ); -sin(θ) cos(θ)])
     final_sides = AbstractCurve2D[]
