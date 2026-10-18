@@ -12,6 +12,7 @@ include("geometry/abstract_curve.jl")
 include("geometry/fillet.jl")
 include("geometry/mesh.jl")
 include("basis/lagrange.jl")
+include("geometry/problem.jl")
 
 # geometry
 export AbstractCurve2D, LineSeg, CircArc, EllipticArc, FuncCurve
