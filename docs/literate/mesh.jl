@@ -13,15 +13,6 @@ combined_mesh = concat_meshes(circle_mesh_A, circle_mesh_B)
 
 plot(combined_mesh)
 
-
-# ### Graph stuff
-# Graphs.jl gives us some nice ways to ask questions about the mesh.
-# How many connected components are there?  (There are two circles, so there should be 2).
-using Graphs
-
-Graphs.count_connected_components(combined_mesh.topology)
-
-
 # ### Rectangles
 
 rect = rectangle(
@@ -32,3 +23,27 @@ rect = rectangle(
 circles_and_rect = concat_meshes(combined_mesh, rect)
 
 plot(circles_and_rect)
+
+# ### Graph stuff
+# Graphs.jl gives us some nice ways to ask questions about the mesh.
+# How many connected components are there?  (There are two circles + 1 rectangle, so there should be 3).
+using Graphs
+
+count_connected_components(circles_and_rect.topology)
+
+
+# ### Cycles
+# How many cycles does the full graph have?  (Should have 3 again, circles and rectangle)
+# The two two-element cycles are the circles, the rectangle is a four-element cycle.
+
+simplecycles(circles_and_rect.topology)
+
+# ### Degree of each vertex
+
+for vert in vertices(circles_and_rect.topology)
+    @assert ((indegree(circles_and_rect.topology, vert) == 1) && (outdegree(circles_and_rect.topology, vert) == 1))
+end
+
+# ### DOF assignment
+
+assign_dofs()

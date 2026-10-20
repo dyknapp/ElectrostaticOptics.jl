@@ -26,4 +26,7 @@ export empty_mesh, concat_meshes, circle, rectangle
 # basis
 export lagrange_j, jacobian
 
+# TEMPORARY EXPORTS FOR DEBUGGING
+export assign_dofs
+
 end
