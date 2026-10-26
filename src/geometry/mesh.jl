@@ -2,21 +2,56 @@
 
 const SNAP_TOL = 1.0e-9
 
+@enum Smoothness begin
+    DISCONTINUOUS = -1
+    G0 = 0
+    G1 = 1
+    G2 = 2
+    G∞ = -1000
+end
+
+const MAX_SMOOTHNESS_CHECK = 1
+
 # TODO: handling for different types of incorrect mesh initializations
 struct Mesh
     panels::Vector{AbstractCurve2D}
     topology::SimpleDiGraph
+    smoothness_map::Dict{Tuple{Int, Int}, Smoothness}
 
     function Mesh(panels::Vector{AbstractCurve2D}, topology::SimpleDiGraph)
         @assert length(panels) == nv(topology) # Initial check, is topology generally consistent with panels?
         # Next, go through and actually check connectivity
+        # TODO: flagging and healing discontinuities
         for edge in edges(topology)
             println("Verifying edge ", edge)
             curve_A = panels[src(edge)]
             curve_B = panels[dst(edge)]
             @assert(norm(curve_A(1.0) - curve_B(0.0)) ≤ SNAP_TOL)
         end
-        return new(panels, topology)
+        # Go through and assign smoothness
+        smoothness_map = Dict{Tuple{Int, Int}, Smoothness}()
+        for edge in edges(topology)
+            curve_A = panels[src(edge)] # vertex at ξ=1
+            curve_B = panels[dst(edge)] # vertex at ξ=0
+            smoothness = 0
+            dcA, dcB = curve_A, curve_B
+            while smoothness ≤ MAX_SMOOTHNESS_CHECK
+                dcA = derivative_curve(dcA)
+                dcB = derivative_curve(dcB)
+                if !all((dcA(1.0) / norm(dcA(1.0))) ≈ (dcB(0.0) / norm(dcB(0.0))))
+                    break
+                else
+                    smoothness += 1
+                end
+            end
+            smoothness_map[(src(edge), dst(edge))] = Smoothness(smoothness)
+            if smoothness_map[(src(edge), dst(edge))] == Smoothness(MAX_SMOOTHNESS_CHECK + 1)
+                println("Assigning edge ", edge, " smoothness: ", smoothness_map[(src(edge), dst(edge))], " (at least)")
+            else
+                println("Assigning edge ", edge, " smoothness: ", smoothness_map[(src(edge), dst(edge))])
+            end
+        end
+        return new(panels, topology, smoothness_map)
     end
 end
 
@@ -58,6 +93,70 @@ function rectangle(center::SVector{2}, width::Real, height::Real, θ::Real)
     add_edge!(topology, 4, 1)
 
     return Mesh(final_sides, topology)
+end
+
+# helper functionf or inserting a fillet
+# For vertices connected v1→v3, return a vertex v2 such that the graph is connected v1→v2→v3
+function insert_vertex!(g::SimpleDiGraph, v1, v3)
+    @assert has_edge(g, v1, v3) # we can't insert into a non-existent edge.
+    @assert add_vertex!(g) # did we succesfully add a vertex?
+    v2 = nv(g) # grab the new vertex we added
+
+    # update the graph with the new vertex
+    rem_edge!(g, v1, v3)
+    add_edge!(g, v1, v2)
+    add_edge!(g, v2, v3)
+    return v2
+end
+
+# remember, vertices in our graphs are panels, edges are joints between panels
+function smoothness(m::Mesh, e::Graphs.SimpleEdge{Int64})
+    return m.smoothness_map[(src(e), dst(e))]
+end
+
+function fillet_corners(m::Mesh, radius::Real)
+    panels = copy(m.panels)
+    topology = copy(m.topology)
+    # for edge in edges(topology)
+    #     println(edge)
+    # end
+
+    # Bounds in each ORIGINAL panel's parameter space
+    n = length(m.panels)
+    # keep track of the trimming bounds:
+    lo, hi = zeros(n), ones(n)
+
+    # Read only from m; modify only the output panels and topology
+    for edge in edges(m.topology)
+        if !(smoothness(m, edge) == G0)
+            continue
+        end
+
+        v1, v3 = src(edge), dst(edge)
+        (a, b), arc = solve_fillet_arc(radius, (m.panels[v1], m.panels[v3]))
+
+        hi[v1] = a
+        lo[v3] = b
+
+        println("Inserting edge: ", edge)
+        # Update topology with new fillet
+        v2 = insert_vertex!(topology, v1, v3)
+        # add the fillet panel
+        push!(panels, arc)
+        # check consistency
+        @assert length(panels) == v2
+    end
+
+    # Combine endpoint cuts before trimming each panel
+    for i in eachindex(m.panels)
+        @assert (0 ≤ lo[i] < hi[i] ≤ 1)
+
+        if lo[i] != 0 || hi[i] != 1
+            panels[i] = trim(m.panels[i], (lo[i], hi[i]))
+        end
+    end
+
+    return Mesh(panels, topology)
 end
 
 @recipe function f(M::Mesh)

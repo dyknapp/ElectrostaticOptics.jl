@@ -11,6 +11,9 @@ struct BEMproblem{B, K, F}
     # # The kernel for the BEM probelm
     # kernel::K
 
+    # The kernel for this BEM problem
+    kernel::K
+
     # panel_dofs is a mapping from geometry panel index
     #   to a vector of global indices for the panel's corresponding DOFs.
     # By "DOF" (degree of freedom) we mean a single basis function's coefficient

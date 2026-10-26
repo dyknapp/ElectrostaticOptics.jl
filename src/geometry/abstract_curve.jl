@@ -16,9 +16,22 @@ function tangent(c::AbstractCurve2D, t::Real)::SVector{2}
     return normalize(jacobian(c, t)[:, 1])
 end
 
+# Derivative of an existing curve, intended for continuity checks.
+# TODO: ForwardDiff is the baseline, curves should be given hand-written implementations
+function derivative_curve(c::AbstractCurve2D)::AbstractCurve2D
+    return FuncCurve(t -> jacobian(c, SVector(t))[:, 1], 0, 1)
+end
+
 function normal(c::AbstractCurve2D, t::Real)::SVector{2}
     τ = tangent(c, t)
     return SVector(τ[2], -τ[1])
+end
+
+# generic fallback to use FuncCurve's remapping
+function trim(c::AbstractCurve2D, interval::Tuple{Real, Real})
+    a, b = interval
+    @assert 0 ≤ a < b ≤ 1
+    return FuncCurve(c, a, b)
 end
 
 struct LineSeg{T <: Real} <: AbstractCurve2D

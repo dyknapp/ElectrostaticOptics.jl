@@ -16,12 +16,13 @@ include("geometry/problem.jl")
 
 # geometry
 export AbstractCurve2D, LineSeg, CircArc, EllipticArc, FuncCurve
-export tangent, normal, measure
+export tangent, normal, measure, derivative_curve
 export affine_transform, translation
 export solve_fillet, solve_fillet_arc
 
 # mesh
 export empty_mesh, concat_meshes, circle, rectangle
+export fillet_corners
 
 # basis
 export lagrange_j, jacobian

@@ -47,3 +47,7 @@ end
 # ### DOF assignment
 
 assign_dofs()
+# Fillet the rectangles to bump up the smoothnesses
+
+smooth_mesh = fillet_corners(circles_and_rect, 1.0)
+plot(smooth_mesh)
