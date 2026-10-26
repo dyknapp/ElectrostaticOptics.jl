@@ -1,20 +1,6 @@
 # 2026 10 15, Daniel Knapp, Amsterdam : initial version (lagrange_j is adapted from my 2026 04 08 code)
 #                                       main change is plugging into AbstractMapping
-
-
-struct PolynomialMapping{T} <: AbstractMapping{1, 1}
-    p::Polynomials.Polynomial{T, :x}
-end
-(m::PolynomialMapping)(x::Real) = m.p(x)
-
-# 1-element vector input
-function point(mapping::PolynomialMapping, ξ::SVector{1})
-    return SVector(mapping.p(only(ξ)))
-end
-function jacobian(mapping::PolynomialMapping{T}, ξ::SVector{1}) where {T}
-    deriv = derivative(mapping.p)
-    return SMatrix{1, 1}(deriv(only(ξ)))
-end
+# 2026 10 26, Daniel Knapp, Amsterdam : LagrangeBasis constructor for PolynomialBasis
 
 """
 Definition of the Lagrange basis polynomials
@@ -33,3 +19,40 @@ function lagrange_j(j::Int, nodes::AbstractVector{T}) where {T <: Real}
     p = fromroots(roots) # Construct a polynomial that has all these roots.  Still off by a constant.
     return PolynomialMapping(p / p(nodes[j])) # The polynomial is scaled to have unit height at j-th node
 end
+
+# https://discourse.julialang.org/t/test-whether-an-iterable-is-strictly-increasing/100282
+function is_pairwise(f, itr)
+    p = Iterators.peel(itr)
+    isnothing(p) && return true
+    prev, rest = p
+    for cur in rest
+        f(prev, cur) || return false
+        prev = cur
+    end
+    return true
+end
+
+# e.g. for P=2, quadratic so 3 degrees of freedom
+function LagrangeBasis(local_nodes::SVector{N, T}) where {N, T <: Real}
+    @assert N ≥ 1
+    @assert all(x -> 0 ≤ x ≤ 1, local_nodes)
+    @assert is_pairwise(<, local_nodes)
+
+    mappings = SVector{N, PolynomialMapping}(
+        ntuple(j -> lagrange_j(j, local_nodes), N)
+    )
+
+    return PolynomialBasis{N, PolynomialMapping{T}}(mappings)
+end
+
+function LagrangeBasis(::Type{T}, p::Int) where {T <: Real}
+    @assert p ≥ 0
+    local_nodes = LinRange(T(0), T(1), p + 1)
+    mappings = SVector{p + 1, PolynomialMapping}(
+        ntuple(j -> lagrange_j(j, local_nodes), p + 1)
+    )
+    return PolynomialBasis{p + 1, PolynomialMapping{T}}(mappings)
+end
+
+# Default: Float64
+LagrangeBasis(p::Int) = LagrangeBasis(Float64, p)

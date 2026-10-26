@@ -80,3 +80,29 @@ abstract type AbstractElement{N, D, T} <: AbstractMapping{N, D} end
 abstract type AbstractKernel{T <: Real} end
 (kernel::AbstractKernel{T})(pt₁::SVector{2, T}, pt₂::SVector{2, T}) where {T} = error("Not implemented for $(typeof(kernel))")
 # TODO: is there a nice general way to ask for diagonal/adjacent element/far separated element blocks?
+
+
+# =====================================================================================
+
+struct PolynomialMapping{T} <: AbstractMapping{1, 1}
+    p::Polynomials.Polynomial{T, :x}
+end
+(m::PolynomialMapping)(x::Real) = m.p(x)
+
+# 1-element vector input
+function point(mapping::PolynomialMapping, ξ::SVector{1})
+    return SVector(mapping.p(only(ξ)))
+end
+function jacobian(mapping::PolynomialMapping{T}, ξ::SVector{1}) where {T}
+    deriv = derivative(mapping.p)
+    return SMatrix{1, 1}(deriv(only(ξ)))
+end
+
+# K basis functions
+abstract type AbstractPanelBasis{L} end
+
+struct PolynomialBasis{L, M <: PolynomialMapping} <: AbstractPanelBasis{L}
+    mappings::SVector{L, M}
+end
+Base.length(b::PolynomialBasis) = length(b.mappings)
+(b::PolynomialBasis)(idx::Int, ξ::Real) = b.mappings[idx](ξ)

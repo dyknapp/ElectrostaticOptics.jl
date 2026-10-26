@@ -1,4 +1,5 @@
 # 2026 10 15, Daniel Knapp, Amsterdam : initial version
+# 2026 10 26, Daniel Knapp, Amsterdam : smoothness & filleting
 
 const SNAP_TOL = 1.0e-9
 
@@ -13,6 +14,7 @@ end
 const MAX_SMOOTHNESS_CHECK = 1
 
 # TODO: handling for different types of incorrect mesh initializations
+# TODO: far in the future: generalize to allow 3D too.
 struct Mesh
     panels::Vector{AbstractCurve2D}
     topology::SimpleDiGraph
@@ -114,6 +116,8 @@ function smoothness(m::Mesh, e::Graphs.SimpleEdge{Int64})
     return m.smoothness_map[(src(e), dst(e))]
 end
 
+
+# TODO: handling for overlapping fillets.
 function fillet_corners(m::Mesh, radius::Real)
     panels = copy(m.panels)
     topology = copy(m.topology)

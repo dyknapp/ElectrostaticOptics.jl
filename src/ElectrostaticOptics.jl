@@ -12,7 +12,7 @@ include("geometry/abstract_curve.jl")
 include("geometry/fillet.jl")
 include("geometry/mesh.jl")
 include("basis/lagrange.jl")
-include("geometry/problem.jl")
+include("basis/dofs.jl")
 
 # geometry
 export AbstractCurve2D, LineSeg, CircArc, EllipticArc, FuncCurve
@@ -26,8 +26,9 @@ export fillet_corners
 
 # basis
 export lagrange_j, jacobian
+export LagrangeBasis
 
 # TEMPORARY EXPORTS FOR DEBUGGING
-export assign_dofs
+export build_discontinuous_function_space
 
 end

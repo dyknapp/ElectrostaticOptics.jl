@@ -45,9 +45,12 @@ for vert in vertices(circles_and_rect.topology)
 end
 
 # ### DOF assignment
-
-assign_dofs()
 # Fillet the rectangles to bump up the smoothnesses
 
 smooth_mesh = fillet_corners(circles_and_rect, 1.0)
 plot(smooth_mesh)
+
+# #
+
+basis = LagrangeBasis(Float64, 2)
+build_discontinuous_function_space(smooth_mesh, basis)
