@@ -47,7 +47,11 @@ end
 
 function LagrangeBasis(::Type{T}, p::Int) where {T <: Real}
     @assert p ≥ 0
-    local_nodes = LinRange(T(0), T(1), p + 1)
+    if p == 0
+        local_nodes = [0.5]
+    else
+        local_nodes = LinRange(T(0), T(1), p + 1)
+    end
     mappings = SVector{p + 1, PolynomialMapping}(
         ntuple(j -> lagrange_j(j, local_nodes), p + 1)
     )
@@ -56,3 +60,18 @@ end
 
 # Default: Float64
 LagrangeBasis(p::Int) = LagrangeBasis(Float64, p)
+
+
+@recipe function f(pb::PolynomialBasis)
+    seriestype   --> :path
+    labels       --> false
+    ylims        --> (-1.5, 1.5)
+
+    for idx in eachindex(pb.mappings)
+        @series begin
+            t = LinRange(0.0, 1.0, 128)
+            pts = pb.mappings[idx].(t)
+            t, pts
+        end
+    end
+end
