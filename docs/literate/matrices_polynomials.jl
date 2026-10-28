@@ -148,3 +148,7 @@ x = LinRange(0.0, 1.0, 128)
 plot(x, result_polynomial.(x), label = "p(x)", legend = false)
 
 # In general, this is how we can turn a chosen polynomial basis into global DOFs.
+# At each joint between panels, we can choose a set number of constraints (e.g., for smooth charge distribution, two constraints, derivative and value).
+# The DOF assignment then proceeds by allocating unconstrained DOFs to the interio  r of each panel, or erroring if polynomial order is too low to satisfy constraints.
+# The topology graph edges request constraints, and the vertices soak up the remaining ones.
+# This gives an easy way to give raw basis functions directly corresponding to global DOFs to the panels.
