@@ -50,7 +50,57 @@ end
 smooth_mesh = fillet_corners(circles_and_rect, 1.0)
 plot(smooth_mesh)
 
-# #
 
-basis = LagrangeBasis(Float64, 2)
-build_discontinuous_function_space(smooth_mesh, basis)
+# ### BEM function space
+# Let's manually program in the constraints for the function space
+# The first four panels belong to the circles, we can give them C1 continuity
+# The rest of the panels deserve C0 (filleted rectangel)
+
+circle_panels = 1:length(combined_mesh.panels)
+constraints_map = Dict(
+    (src(e), dst(e)) => (src(e) in circle_panels ? C1 : C0)
+        for e in edges(smooth_mesh.topology)
+)
+
+# A cubic polynomial is four coefficients, the minimum to satisfy C1 on both sides.
+
+basis = LagrangeBasis(Float64, 3)
+space = build_function_space(smooth_mesh, basis, constraints_map)
+space.n_dofs
+
+# We have 4 DOFs per circle (4xpanels - 4xC1), and 24 (4xpanels - 8xC0) for the rectangle, so 32 total
+# ## Plot the actual global DOFs
+
+function panel_density(boundary_panel, coefficients, ξ)
+    @assert length(coefficients) == length(boundary_panel.basis.mappings)
+    value = sum(c * b(ξ) for (c, b) in zip(coefficients, boundary_panel.basis.mappings))
+    return value
+end
+
+# Let's check if the circle is C1.  We need to generate the Lagrange basis coefficients corresponding to the global DOFs.
+
+circle_panels = space.bem_panels[1:2]
+
+u = zeros(space.n_dofs)
+# DoFs are:
+# 1: value at displayed ξ = 1
+# 2: slope at displayed ξ = 1
+# 3: value at displayed ξ = 0, 2 (periodic boundary conditions!)
+# 4: slope at displayed ξ = 0, 2 (periodic boundary conditions!)
+u[1:4] .= [-3.0, 1.0, 0.0, 0.0]
+coefficients = [
+    local_coefficients(space.maps[i], u)
+        for i in 1:2
+]
+
+ξ_01 = collect(LinRange(0.0, 1.0, 128))
+
+ξ_vals = [ξ_01; 1.0 .+ ξ_01]
+
+density_vals = [
+    [panel_density(circle_panels[1], coefficients[1], ξ) for ξ in ξ_01];
+    [panel_density(circle_panels[2], coefficients[2], ξ) for ξ in ξ_01];
+]
+
+
+plot(ξ_vals, density_vals)

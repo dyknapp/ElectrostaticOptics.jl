@@ -28,7 +28,7 @@ export fillet_corners
 export lagrange_j, jacobian
 export LagrangeBasis
 
-# TEMPORARY EXPORTS FOR DEBUGGING
-export build_discontinuous_function_space
+export BasisConstraint, UNCONSTRAINED, VALUE, C0, C1
+export build_function_space, local_coefficients
 
 end
