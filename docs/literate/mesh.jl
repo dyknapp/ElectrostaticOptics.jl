@@ -104,3 +104,28 @@ density_vals = [
 
 
 plot(ξ_vals, density_vals)
+
+
+# ## Set up a collocation problem (look at the collocation points)
+
+collocation_problem = CollocationProblem(
+    smooth_mesh,
+    space,
+    :GaussLegendre,
+)
+
+colloc_pt_coords = zeros(Float64, space.n_dofs, 2)
+
+for (idx, row) in enumerate(collocation_problem.row_defs)
+    colloc_pt_coords[idx, :] = row.pt
+end
+
+plot(
+    colloc_pt_coords[:, 1],
+    colloc_pt_coords[:, 2],
+    seriestype = :scatter,
+    markercolor = :white,
+    markersize = 2,
+    label = "collocation points",
+)
+plot!(smooth_mesh)

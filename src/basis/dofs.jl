@@ -17,6 +17,7 @@ struct BoundaryPanel{L}
     basis::AbstractPanelBasis{L} # L basis functions
 end
 
+# TODO: move to static arrays
 struct PanelDofMap{T}
     global_idcs::Vector{Int}
     weights::Matrix{T}  # L rows × G columns
@@ -29,9 +30,12 @@ end
 struct FunctionSpace{T}
     bem_panels::Vector{BoundaryPanel}
     maps::Vector{PanelDofMap{T}}
+    assigned_dofs::Vector{Int64} # For collocation
+    # supported_dofs::Vector{Int64} TODO: for galerkin
     n_dofs::Int # number of total DOFs
 
     # These get inherited from Mesh.jl
+    # TODO: I don't think FunctionSpace needs topology
     topology::SimpleDiGraph
 end
 
@@ -127,6 +131,7 @@ function build_function_space(
     # PASS 2
     bps = BoundaryPanel[]
     maps = PanelDofMap{Float64}[]
+    assigned_dofs = zeros(Int64, nv(g))
 
     for v in vertices(g)
         panel = mesh.panels[v]
@@ -167,6 +172,7 @@ function build_function_space(
 
         interior_dofs = collect((dof_counter + 1):(dof_counter + remaining_dofs))
         dof_counter += remaining_dofs
+        assigned_dofs[v] = remaining_dofs + length(edge_dofs[joint_out])
 
         # Assemble the LxL constraint matrix
         # Reordered nicely to flow along the graph
@@ -181,9 +187,13 @@ function build_function_space(
         push!(maps, PanelDofMap(panel_global_idcs, inv(M)))
     end
 
+    # Check that we assigned the right number of DOFs to panels
+    @assert sum(assigned_dofs) == dof_counter
+
     return FunctionSpace(
         bps,
         maps,
+        assigned_dofs,
         dof_counter,
         mesh.topology,
     )

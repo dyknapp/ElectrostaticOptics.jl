@@ -33,3 +33,11 @@ The point kernel should give the potential contribution per unit charge, so the 
 K(r)=2k_e\log\left(\frac{r_0}{r}\right)
 ```
 In principle, we could drop the constants out, but it's nice to know what the matrix elements of the BEM matrix physically will be.
+
+# Collocation BEM Failure Modes
+There are several different ways that a nicely set up collocation problem can give a singular matrix.
+- symmetries
+- logarithmic capacity
+
+### Logarithmic Capacity
+Under a specific condition, the logarithmic planar kernel can cause the BEM matrix to be singular [Dijkstra2007](@cite).

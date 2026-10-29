@@ -6,13 +6,20 @@ using LinearAlgebra
 using RecipesBase # For plot recipes
 using Graphs # For mesh topology
 using Polynomials
+using FastGaussQuadrature
 
 include("core/interfaces.jl")
 include("geometry/abstract_curve.jl")
 include("geometry/fillet.jl")
 include("geometry/mesh.jl")
+
 include("basis/lagrange.jl")
 include("basis/dofs.jl")
+
+include("problem/collocation.jl")
+include("kernel/planar.jl")
+
+# TODO: eventually decdie what to export and what not to
 
 # geometry
 export AbstractCurve2D, LineSeg, CircArc, EllipticArc, FuncCurve
@@ -30,5 +37,8 @@ export LagrangeBasis
 
 export BasisConstraint, UNCONSTRAINED, VALUE, C0, C1
 export build_function_space, local_coefficients
+
+# problem
+export CollocationProblem, assign_points
 
 end
