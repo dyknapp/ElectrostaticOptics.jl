@@ -5,3 +5,28 @@
 /docs/Manifest*.toml
 /docs/build/
 /docs/src/generated/
+
+# For BinaryBuilder:
+/deps/binarybuilder/build
+/deps/binarybuilder/products
+/deps/binarybuilder/Manifest.toml
+
+# Object files
+*.o
+*.ko
+
+# Libraries
+*.lib
+*.a
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+*.dylib.*
+
+# Executables
+*.exe
+*.out
+*.app

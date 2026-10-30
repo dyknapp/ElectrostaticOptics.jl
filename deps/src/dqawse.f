@@ -1,6 +1,13 @@
 c Downloaded from https://netlib.org/cgi-bin/netlibfiles.pl?filename=/quadpack/qawse.f (public domain) on 29.10.2026
 c Changelog:
 c - Added d1mach from https://people.math.sc.edu/Burkardt/f77_src/machine/machine.f (GNU LGPL)
+c - Added test function
+
+      function triple(x)
+c        Just a simple function to test if calls are working
+            double precision :: triple, x
+            triple = 3 * x
+      end function triple
 
       subroutine dqawse(f,a,b,alfa,beta,integr,epsabs,epsrel,limit,
      *   result,abserr,neval,ier,alist,blist,rlist,elist,iord,last)
