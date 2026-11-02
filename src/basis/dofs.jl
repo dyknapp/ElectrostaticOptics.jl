@@ -31,7 +31,6 @@ struct FunctionSpace{T}
     bem_panels::Vector{BoundaryPanel}
     maps::Vector{PanelDofMap{T}}
     assigned_dofs::Vector{Int64} # For collocation
-    # supported_dofs::Vector{Int64} TODO: for galerkin
     n_dofs::Int # number of total DOFs
 
     # These get inherited from Mesh.jl

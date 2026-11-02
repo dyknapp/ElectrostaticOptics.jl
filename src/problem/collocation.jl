@@ -12,7 +12,7 @@ struct CollocationProblem{T}
     points::Vector{Vector{Float64}} # panels x DOFs
     row_defs::Vector{Row} # panel number, ξ, panel(ξ)
 
-    # kernel::TODO
+    kernel::AbstractKernel{T}
 end
 
 # TODO: set up caching of quadrature rules?  Revisit when writing quadrature logic.
@@ -35,7 +35,7 @@ function assign_points(n::Int, method::Symbol)::Vector{Float64}
 end
 
 # Construct collocation problem, including collocation point assignment
-function CollocationProblem(mesh::Mesh, space::FunctionSpace, method::Symbol)
+function CollocationProblem(mesh::Mesh, space::FunctionSpace, kernel::AbstractKernel, method::Symbol)
     points = Vector{Vector{Float64}}()
     for idx in eachindex(mesh.panels)
         push!(points, assign_points(space.assigned_dofs[idx], method))
@@ -54,5 +54,60 @@ function CollocationProblem(mesh::Mesh, space::FunctionSpace, method::Symbol)
         space,
         points,
         row_defs,
+        kernel,
     )
+end
+
+
+# Completely unoptimized and as-simple-as-possible reference
+function reference_matrix(problem::CollocationProblem{T}) where {T <: Real}
+    space = problem.space
+
+    # BEM matrix
+    N = problem.space.n_dofs
+    mat = zeros(N, N)
+
+    # blank vector to use as unit vector
+    u = zeros(N)
+    for io in 1:N # this is the surce global DOF
+        # prep the unit vector representing global DOF
+        fill!(u, 0)
+        u[io] = 1
+
+        for (ii, bem_panel) in enumerate(space.bem_panels)
+            # Does the unit vector u have support in bem_panel??
+            coeffs = local_coefficients(space.maps[ii], u)
+            if iszero(coeffs)
+                continue # No overlap!
+            end
+            # There is support!
+
+            # Reconstruct the basis function on bem_panel for the global DOF
+            density(ξ) = sum(
+                coeffs[l] * bem_panel.basis(l, ξ) for l in eachindex(coeffs)
+            )
+
+            # Let's scatter into the BEM matrix:
+            # bem_panel is the source, enumerated row_idx/row is the target collocation point's row
+            for (row_idx, row) in enumerate(problem.row_defs)
+                # This is the integrand:
+                f(ξ) = problem.kernel(bem_panel.panel(ξ), row.pt) *
+                    density(ξ) * measure(bem_panel.panel, ξ)
+
+                # If the target collocation point is on a source panel, we have a divergence
+                # (Basis functions can have support on two panels!)
+                bounds = if (ii == row.panel_idx) && (0 < row.ξ < 1)
+                    (0.0, row.ξ, 1.0)
+                else
+                    (0.0, 1.0)
+                end
+
+                # Too high error bounds will cause domain error.
+                value, err = quadgk(f, bounds...; rtol = 1.0e-9, atol = 1.0e-9)
+                mat[row_idx, io] += value
+            end
+        end
+    end
+
+    return mat
 end

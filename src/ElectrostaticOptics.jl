@@ -7,6 +7,7 @@ using RecipesBase # For plot recipes
 using Graphs # For mesh topology
 using Polynomials
 using FastGaussQuadrature
+using QuadGK
 
 include("core/interfaces.jl")
 include("geometry/abstract_curve.jl")
@@ -40,5 +41,11 @@ export build_function_space, local_coefficients
 
 # problem
 export CollocationProblem, assign_points
+
+# kernel
+export PlanarKernel
+
+# Assembly
+export reference_matrix
 
 end

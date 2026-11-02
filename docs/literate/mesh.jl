@@ -87,7 +87,7 @@ u = zeros(space.n_dofs)
 # 2: slope at displayed ξ = 1
 # 3: value at displayed ξ = 0, 2 (periodic boundary conditions!)
 # 4: slope at displayed ξ = 0, 2 (periodic boundary conditions!)
-u[1:4] .= [-3.0, 1.0, 0.0, 0.0]
+u[1:4] .= [0.0, 1.0, 0.0, 0.0]
 coefficients = [
     local_coefficients(space.maps[i], u)
         for i in 1:2
@@ -108,9 +108,12 @@ plot(ξ_vals, density_vals)
 
 # ## Set up a collocation problem (look at the collocation points)
 
+kernel = PlanarKernel(Float64, 1.0, 100.0)
+
 collocation_problem = CollocationProblem(
     smooth_mesh,
     space,
+    kernel,
     :GaussLegendre,
 )
 
@@ -129,3 +132,7 @@ plot(
     label = "collocation points",
 )
 plot!(smooth_mesh)
+
+# ## Assemble matrix
+
+reference_matrix(collocation_problem)
