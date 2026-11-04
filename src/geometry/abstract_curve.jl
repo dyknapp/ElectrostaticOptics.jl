@@ -35,6 +35,11 @@ function trim(c::AbstractCurve2D, interval::Tuple{Real, Real})
     return FuncCurve(c, a, b)
 end
 
+# generic fallback for subdivision
+function subdivide(c::AbstractCurve2D)
+    return FuncCurve(c, 0.0, 0.5), FuncCurve(c, 0.5, 1.0)
+end
+
 # Arc length from 0 to ξ
 function arc_length(c::AbstractCurve2D, ξ::Real; abstol = 1.0e-12, reltol = 1.0e-12)
     res, _ = quadgk(ξ -> measure(c, ξ), 0.0, ξ; atol = abstol, rtol = reltol)

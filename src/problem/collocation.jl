@@ -36,7 +36,8 @@ function assign_points(n::Int, method::Symbol)::Vector{Float64}
 end
 
 # Construct collocation problem, including collocation point assignment
-function CollocationProblem(mesh::Mesh, space::FunctionSpace, kernel::AbstractKernel, method::Symbol)
+# offset_fac is only relevant when method == :ArcLength
+function CollocationProblem(mesh::Mesh, space::FunctionSpace, kernel::AbstractKernel, method::Symbol; offset_fac = 0.0)
     points = Vector{Vector{Float64}}(undef, length(mesh.panels))
 
     if method == :ArcLength
@@ -51,7 +52,8 @@ function CollocationProblem(mesh::Mesh, space::FunctionSpace, kernel::AbstractKe
             pt_spacing = al / pts
 
             # Iterate through the curves and assign points with equal arc length spacing
-            traversed_length = 0.0
+            @assert 0 ≤ offset_fac < 1.0
+            traversed_length = pt_spacing * offset_fac
             available_length = 0.0
             previous_panel_lengths = 0.0
 

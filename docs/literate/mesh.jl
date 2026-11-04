@@ -114,7 +114,8 @@ collocation_problem = CollocationProblem(
     smooth_mesh,
     space,
     kernel,
-    :ArcLength,
+    :ArcLength;
+    offset_fac = 0.25,
 )
 
 colloc_pt_coords = zeros(Float64, space.n_dofs, 2)
@@ -138,3 +139,7 @@ using LinearAlgebra
 
 V = reference_matrix(collocation_problem)
 cond(V)
+
+# # Solve
+
+V \ ones(space.n_dofs)
