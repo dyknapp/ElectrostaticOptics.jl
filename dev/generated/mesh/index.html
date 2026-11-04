@@ -6,14 +6,14 @@ circle_mesh_B = circle(SVector(5.0, 2.0), 1.0)
 
 combined_mesh = concat_meshes(circle_mesh_A, circle_mesh_B)
 
-plot(combined_mesh)</code></pre><img src="6006596a.svg" alt="Example block output"/><h3 id="Rectangles"><a class="docs-heading-anchor" href="#Rectangles">Rectangles</a><a id="Rectangles-1"></a><a class="docs-heading-anchor-permalink" href="#Rectangles" title="Permalink"></a></h3><pre><code class="language-julia hljs">rect = rectangle(
+plot(combined_mesh)</code></pre><img src="e716a87e.svg" alt="Example block output"/><h3 id="Rectangles"><a class="docs-heading-anchor" href="#Rectangles">Rectangles</a><a id="Rectangles-1"></a><a class="docs-heading-anchor-permalink" href="#Rectangles" title="Permalink"></a></h3><pre><code class="language-julia hljs">rect = rectangle(
     SVector(10.0, 10.0),
     3.0, 4.0, π / 4.0
 )
 
 circles_and_rect = concat_meshes(combined_mesh, rect)
 
-plot(circles_and_rect)</code></pre><img src="062e7c82.svg" alt="Example block output"/><h3 id="Graph-stuff"><a class="docs-heading-anchor" href="#Graph-stuff">Graph stuff</a><a id="Graph-stuff-1"></a><a class="docs-heading-anchor-permalink" href="#Graph-stuff" title="Permalink"></a></h3><p>Graphs.jl gives us some nice ways to ask questions about the mesh. How many connected components are there?  (There are two circles + 1 rectangle, so there should be 3).</p><pre><code class="language-julia hljs">using Graphs
+plot(circles_and_rect)</code></pre><img src="d3dfe4a8.svg" alt="Example block output"/><h3 id="Graph-stuff"><a class="docs-heading-anchor" href="#Graph-stuff">Graph stuff</a><a id="Graph-stuff-1"></a><a class="docs-heading-anchor-permalink" href="#Graph-stuff" title="Permalink"></a></h3><p>Graphs.jl gives us some nice ways to ask questions about the mesh. How many connected components are there?  (There are two circles + 1 rectangle, so there should be 3).</p><pre><code class="language-julia hljs">using Graphs
 
 count_connected_components(circles_and_rect.topology)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">3</code></pre><h3 id="Cycles"><a class="docs-heading-anchor" href="#Cycles">Cycles</a><a id="Cycles-1"></a><a class="docs-heading-anchor-permalink" href="#Cycles" title="Permalink"></a></h3><p>How many cycles does the full graph have?  (Should have 3 again, circles and rectangle) The two two-element cycles are the circles, the rectangle is a four-element cycle.</p><pre><code class="language-julia hljs">simplecycles(circles_and_rect.topology)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">3-element Vector{Vector{Int64}}:
  [1, 2]
@@ -21,7 +21,7 @@ count_connected_components(circles_and_rect.topology)</code></pre><pre class="do
  [5, 6, 7, 8]</code></pre><h3 id="Degree-of-each-vertex"><a class="docs-heading-anchor" href="#Degree-of-each-vertex">Degree of each vertex</a><a id="Degree-of-each-vertex-1"></a><a class="docs-heading-anchor-permalink" href="#Degree-of-each-vertex" title="Permalink"></a></h3><pre><code class="language-julia hljs">for vert in vertices(circles_and_rect.topology)
     @assert ((indegree(circles_and_rect.topology, vert) == 1) &amp;&amp; (outdegree(circles_and_rect.topology, vert) == 1))
 end</code></pre><h3 id="DOF-assignment"><a class="docs-heading-anchor" href="#DOF-assignment">DOF assignment</a><a id="DOF-assignment-1"></a><a class="docs-heading-anchor-permalink" href="#DOF-assignment" title="Permalink"></a></h3><p>Fillet the rectangles to bump up the smoothnesses</p><pre><code class="language-julia hljs">smooth_mesh = fillet_corners(circles_and_rect, 1.0)
-plot(smooth_mesh)</code></pre><img src="a8c53488.svg" alt="Example block output"/><h3 id="BEM-function-space"><a class="docs-heading-anchor" href="#BEM-function-space">BEM function space</a><a id="BEM-function-space-1"></a><a class="docs-heading-anchor-permalink" href="#BEM-function-space" title="Permalink"></a></h3><p>Let&#39;s manually program in the constraints for the function space The first four panels belong to the circles, we can give them C1 continuity The rest of the panels deserve C0 (filleted rectangel)</p><pre><code class="language-julia hljs">circle_panels = 1:length(combined_mesh.panels)
+plot(smooth_mesh)</code></pre><img src="09baff0b.svg" alt="Example block output"/><h3 id="BEM-function-space"><a class="docs-heading-anchor" href="#BEM-function-space">BEM function space</a><a id="BEM-function-space-1"></a><a class="docs-heading-anchor-permalink" href="#BEM-function-space" title="Permalink"></a></h3><p>Let&#39;s manually program in the constraints for the function space The first four panels belong to the circles, we can give them C1 continuity The rest of the panels deserve C0 (filleted rectangel)</p><pre><code class="language-julia hljs">circle_panels = 1:length(combined_mesh.panels)
 constraints_map = Dict(
     (src(e), dst(e)) =&gt; (src(e) in circle_panels ? C1 : C0)
         for e in edges(smooth_mesh.topology)
@@ -81,13 +81,13 @@ density_vals = [
 ]
 
 
-plot(ξ_vals, density_vals)</code></pre><img src="a2cd717b.svg" alt="Example block output"/><h2 id="Set-up-a-collocation-problem-(look-at-the-collocation-points)"><a class="docs-heading-anchor" href="#Set-up-a-collocation-problem-(look-at-the-collocation-points)">Set up a collocation problem (look at the collocation points)</a><a id="Set-up-a-collocation-problem-(look-at-the-collocation-points)-1"></a><a class="docs-heading-anchor-permalink" href="#Set-up-a-collocation-problem-(look-at-the-collocation-points)" title="Permalink"></a></h2><pre><code class="language-julia hljs">kernel = PlanarKernel(Float64, 1.0, 100.0)
+plot(ξ_vals, density_vals)</code></pre><img src="0b89f637.svg" alt="Example block output"/><h2 id="Set-up-a-collocation-problem-(look-at-the-collocation-points)"><a class="docs-heading-anchor" href="#Set-up-a-collocation-problem-(look-at-the-collocation-points)">Set up a collocation problem (look at the collocation points)</a><a id="Set-up-a-collocation-problem-(look-at-the-collocation-points)-1"></a><a class="docs-heading-anchor-permalink" href="#Set-up-a-collocation-problem-(look-at-the-collocation-points)" title="Permalink"></a></h2><pre><code class="language-julia hljs">kernel = PlanarKernel(Float64, 1.0, 100.0)
 
 collocation_problem = CollocationProblem(
     smooth_mesh,
     space,
     kernel,
-    :GaussLegendre,
+    :ArcLength,
 )
 
 colloc_pt_coords = zeros(Float64, space.n_dofs, 2)
@@ -104,24 +104,7 @@ plot(
     markersize = 2,
     label = &quot;collocation points&quot;,
 )
-plot!(smooth_mesh)</code></pre><img src="e83826a3.svg" alt="Example block output"/><h2 id="Assemble-matrix"><a class="docs-heading-anchor" href="#Assemble-matrix">Assemble matrix</a><a id="Assemble-matrix-1"></a><a class="docs-heading-anchor-permalink" href="#Assemble-matrix" title="Permalink"></a></h2><pre><code class="language-julia hljs">reference_matrix(collocation_problem)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">32×32 Matrix{Float64}:
- 26.5028  -1.12409    31.3675  …  2.3706   2.32599  2.33937  2.39633
- 31.3675  -2.06807    26.5028     2.25759  2.22054  2.24154  2.29763
- 31.3675   2.06807    26.5028     2.20683  2.16753  2.17968  2.22994
- 26.5028   1.12409    31.3675     2.30964  2.26311  2.26701  2.31709
- 17.3392  -0.0433913  18.3973     2.764    2.67986  2.63954  2.68452
- 19.1134  -0.0791541  20.553   …  2.63711  2.56836  2.55122  2.60354
- 19.1134   0.0791541  20.553      2.54389  2.4759   2.45009  2.49382
- 17.3392   0.0433913  18.3973     2.65042  2.56984  2.52356  2.56021
- 12.4196  -0.131587   12.7418     4.11728  4.28979  4.97778  6.10708
- 12.781   -0.139482   13.1227     4.03192  4.10952  4.54037  5.08259
-  ⋮                            ⋱                    ⋮        
- 13.6657  -0.126395   14.1347     3.97812  3.79935  3.72227  3.80517
- 13.4512  -0.114554   13.9167     4.10891  3.87844  3.73056  3.77561
- 13.1463  -0.106896   13.5924  …  4.33882  4.04113  3.81762  3.82735
- 12.0807  -0.0960776  12.4454     7.64704  5.07625  4.36933  4.14047
- 11.8858  -0.0967619  12.2327     7.28679  7.28679  4.57406  4.24291
- 11.8123  -0.100855   12.1454     5.07625  7.64704  4.93709  4.45524
- 11.8779  -0.113776   12.1896     4.45524  4.93709  7.64704  5.07625
- 12.0067  -0.120643   12.3143  …  4.24291  4.57406  7.28679  7.28679
- 12.2399  -0.127693   12.5532     4.14047  4.36933  5.07625  7.64704</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../abstract_curve/">« AbstractCurve2D</a><a class="docs-footer-nextpage" href="../example/">Example »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Monday 2 November 2026 23:36">Monday 2 November 2026</span>. Using Julia version 1.13.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+plot!(smooth_mesh)</code></pre><img src="4739e7d0.svg" alt="Example block output"/><h2 id="Assemble-matrix"><a class="docs-heading-anchor" href="#Assemble-matrix">Assemble matrix</a><a id="Assemble-matrix-1"></a><a class="docs-heading-anchor-permalink" href="#Assemble-matrix" title="Permalink"></a></h2><pre><code class="language-julia hljs">using LinearAlgebra
+
+V = reference_matrix(collocation_problem)
+cond(V)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">1.0668526491035207e8</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../abstract_curve/">« AbstractCurve2D</a><a class="docs-footer-nextpage" href="../example/">Example »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Wednesday 4 November 2026 11:44">Wednesday 4 November 2026</span>. Using Julia version 1.13.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
