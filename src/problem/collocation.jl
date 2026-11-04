@@ -1,4 +1,5 @@
 # 2026 10 29, Daniel Knapp, Amsterdam : initial version
+# 2026 11 04, Daniel Knapp, Amsterdam : :ArcLength collocation ponit assignment
 
 struct Row
     panel_idx::Int64
@@ -36,10 +37,51 @@ end
 
 # Construct collocation problem, including collocation point assignment
 function CollocationProblem(mesh::Mesh, space::FunctionSpace, kernel::AbstractKernel, method::Symbol)
-    points = Vector{Vector{Float64}}()
-    for idx in eachindex(mesh.panels)
-        push!(points, assign_points(space.assigned_dofs[idx], method))
+    points = Vector{Vector{Float64}}(undef, length(mesh.panels))
+
+    if method == :ArcLength
+        for cc in connected_components(mesh.topology)
+            # First, measure the total arc length and the number of collocation points needed
+            al = 0.0
+            pts = 0
+            for panel_idx in cc
+                al += arc_length(mesh.panels[panel_idx])
+                pts += space.assigned_dofs[panel_idx]
+            end
+            pt_spacing = al / pts
+
+            # Iterate through the curves and assign points with equal arc length spacing
+            traversed_length = 0.0
+            available_length = 0.0
+            previous_panel_lengths = 0.0
+
+            for panel_idx in cc
+                this_panel_length = arc_length(mesh.panels[panel_idx])
+                available_length += this_panel_length
+
+                ξs_panel = Float64[]
+
+                while traversed_length < available_length
+                    current_panel_length = traversed_length - previous_panel_lengths
+                    ξ_pt = length_ξ(mesh.panels[panel_idx], current_panel_length)
+                    push!(ξs_panel, ξ_pt)
+
+                    traversed_length += pt_spacing
+                end
+
+                points[panel_idx] = ξs_panel
+
+                previous_panel_lengths += this_panel_length
+            end
+        end
+    else
+        for idx in eachindex(mesh.panels)
+            points[idx] = assign_points(space.assigned_dofs[idx], method)
+        end
     end
+
+    assigned_pts = sum(length(ξs) for ξs in points)
+    @assert assigned_pts == space.n_dofs
 
     row_defs = Vector{Row}()
     for (idx, ξs) in enumerate(points)

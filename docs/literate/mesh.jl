@@ -114,7 +114,7 @@ collocation_problem = CollocationProblem(
     smooth_mesh,
     space,
     kernel,
-    :GaussLegendre,
+    :ArcLength,
 )
 
 colloc_pt_coords = zeros(Float64, space.n_dofs, 2)
@@ -134,5 +134,7 @@ plot(
 plot!(smooth_mesh)
 
 # ## Assemble matrix
+using LinearAlgebra
 
-reference_matrix(collocation_problem)
+V = reference_matrix(collocation_problem)
+cond(V)

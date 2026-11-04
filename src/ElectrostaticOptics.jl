@@ -8,6 +8,7 @@ using Graphs # For mesh topology
 using Polynomials
 using FastGaussQuadrature
 using QuadGK
+using Roots # For length_ξ root finding
 
 include("core/interfaces.jl")
 include("geometry/abstract_curve.jl")
@@ -24,7 +25,7 @@ include("kernel/planar.jl")
 
 # geometry
 export AbstractCurve2D, LineSeg, CircArc, EllipticArc, FuncCurve
-export tangent, normal, measure, derivative_curve
+export tangent, normal, measure, derivative_curve, arc_length, length_ξ
 export affine_transform, translation
 export solve_fillet, solve_fillet_arc
 

@@ -1,6 +1,7 @@
 # 2026 10 14, Daniel Knapp, Amsterdam : initial version
 # 2026 10 15, Daniel Knapp, Amsterdam : Attach to AbstractMapping, add affine_transform and translation
 # 2026 10 18, Daniel Knapp, Amsterdam : Add EllipticArc
+# 2026 11 04, Daniel Knapp, Amsterdam : Add arc_length(), length_ξ()
 
 abstract type AbstractCurve2D <: AbstractMapping{2, 1} end
 
@@ -33,6 +34,46 @@ function trim(c::AbstractCurve2D, interval::Tuple{Real, Real})
     @assert 0 ≤ a < b ≤ 1
     return FuncCurve(c, a, b)
 end
+
+# Arc length from 0 to ξ
+function arc_length(c::AbstractCurve2D, ξ::Real; abstol = 1.0e-12, reltol = 1.0e-12)
+    res, _ = quadgk(ξ -> measure(c, ξ), 0.0, ξ; atol = abstol, rtol = reltol)
+    return res
+end
+
+# Full arc length of segment
+function arc_length(c::AbstractCurve2D; abstol = 1.0e-12, reltol = 1.0e-12)
+    return arc_length(c, 1.0; abstol = abstol, reltol = reltol)
+end
+
+# Find the ξ corresponding to a specific arc length from ξ=0
+# WARNING: not really carefully tested, probably buggy, especially for arbitrary functions
+function length_ξ(c::AbstractCurve2D, len_target::Real; abstol = 1.0e-12, reltol = 1.0e-12)
+    total_len = arc_length(c; abstol = abstol, reltol = reltol)
+    @assert 0 ≤ len_target ≤ total_len
+
+    if abs(len_target - total_len) ≤ abstol
+        return 1.0
+    elseif abs(len_target - 0.0) ≤ abstol
+        return 0.0
+    end
+
+    # Find the root of this function
+    f(ξ) = arc_length(c, ξ; abstol = abstol, reltol = reltol) - len_target
+    df(ξ) = measure(c, ξ)
+
+    # Initial guess: constant speed
+    ξ₀ = len_target / total_len
+
+    return find_zero((f, df), ξ₀, Roots.Newton(); atol = abstol, rtol = reltol)
+end
+
+# # Specialized version for constant-speed panel types
+# function length_ξ(c::Union{LineSeg, CircArc}, len_target::Real, abstol=1.0e-12, reltol=1.0e-12)
+#     total_len = arc_length(c, abstol, reltol)
+#     @assert 0 ≤ len_target ≤ total_len
+#     return float(len_target / total_len)
+# end
 
 struct LineSeg{T <: Real} <: AbstractCurve2D
     p₁::SVector{2, T}
