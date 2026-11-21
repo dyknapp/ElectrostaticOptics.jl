@@ -101,9 +101,9 @@ end
 
 struct CircArc{T <: Real} <: AbstractCurve2D
     o::SVector{2, T}
-    r::Real
-    θ₁::Real
-    θ₂::Real
+    r::T
+    θ₁::T
+    θ₂::T
 
     function CircArc(o::SVector{2}, r::T, θ₁::T, θ₂::T) where {T}
         @assert abs(θ₂ - θ₁) ≤ 2π

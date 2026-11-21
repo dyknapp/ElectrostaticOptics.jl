@@ -3,6 +3,7 @@
 using ElectrostaticOptics
 using StaticArrays
 using Plots
+using Inti
 
 # ### two circles
 
@@ -143,3 +144,38 @@ cond(V)
 # # Solve
 
 V \ ones(space.n_dofs)
+
+
+# # Nystrom
+
+data = to_inti_panel(smooth_mesh)
+Q = data.Q
+inti_pts = Inti.coords.(Q)
+
+p = plot(smooth_mesh; aspect_ratio = :equal)
+
+scatter!(
+    p,
+    getindex.(inti_pts, 1),
+    getindex.(inti_pts, 2);
+    markercolor = :white,
+    markersize = 2,
+    label = "collocation points",
+)
+
+# #
+op = Inti.Laplace(; dim = 2)
+
+S, _ = Inti.single_double_layer(;
+    op,
+    source = Q,
+    target = Q,
+    compression = (method = :none,),
+    correction = (method = :adaptive,),
+)
+
+w = Inti.weight.(Q)
+Vn = 4π * kernel.kₑ * S + 2 * kernel.kₑ * kernel.log_r₀ * (ones(length(Q)) * w')
+
+g = ones(length(Q))
+σ = Vn \ g

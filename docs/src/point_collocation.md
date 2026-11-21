@@ -33,6 +33,22 @@ The point kernel should give the potential contribution per unit charge, so the 
 K(r)=2k_e\log\left(\frac{r_0}{r}\right)
 ```
 In principle, we could drop the constants out, but it's nice to know what the matrix elements of the BEM matrix physically will be.
+Between two points, the kernel is evaluated, of course, as
+```math
+K(\vec{r}_1, \vec{r}_2)=2k_e\log\left(\frac{r_0}{\left|\vec{r}_1 - \vec{r}_2\right|}\right)\ .
+```
+
+# Quadrature
+The BEM matrix elements (single-layer operator) take the form
+```math
+V_{ij}=\int_{\Omega_j} \phi_j(\vec{r})\, K(\vec{c}_i, \vec{r})\ d\vec{r}
+```
+The row index $i$ selects the collocation point $\vec{c}_i$, and the column index $j$, the source basis function $\lambda_j(\vec{r})$.
+The integral takes place over the support of the basis function $\Omega_j$.
+
+Quadrature needs to handle two principal cases.
+- Collocation point far separated from the source basis function: integrand is smooth, no special treatment necessary
+- Collocation point falls within the support of the source basis function: integrand is singular, special quadrature required
 
 # Collocation BEM Failure Modes
 There are several different ways that a nicely set up collocation problem can give a singular matrix.

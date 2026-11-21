@@ -9,16 +9,20 @@ using Polynomials
 using FastGaussQuadrature
 using QuadGK
 using Roots # For length_ξ root finding
+using Inti # Nystrom implementation backend
 
 include("core/interfaces.jl")
 include("geometry/abstract_curve.jl")
 include("geometry/fillet.jl")
 include("geometry/mesh.jl")
+include("geometry/inti_adapter.jl")
 
 include("basis/lagrange.jl")
 include("basis/dofs.jl")
 
 include("problem/collocation.jl")
+include("problem/nystrom.jl")
+
 include("kernel/planar.jl")
 
 # TODO: eventually decdie what to export and what not to
@@ -32,6 +36,7 @@ export solve_fillet, solve_fillet_arc
 # mesh
 export empty_mesh, concat_meshes, circle, rectangle
 export fillet_corners
+export to_inti_panel
 
 # basis
 export lagrange_j, jacobian
@@ -42,6 +47,7 @@ export build_function_space, local_coefficients
 
 # problem
 export CollocationProblem, assign_points
+export NystromProblem
 
 # kernel
 export PlanarKernel
